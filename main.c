@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -20,15 +21,24 @@ typedef uint32_t Color;
 
 SDL_Renderer* renderer = 0;
 
+////////////////////////////////////////////////////////////////////////////////
+/// Drawing
+
+/// Write a single pixel on the canvas
 void put_pixel(size_t x, size_t y, Color c) {
     SDL_SetRenderDrawColor(renderer, RED_C(c), GREEN_C(c), BLUE_C(c), ALPHA_C(c));
     SDL_RenderDrawPoint(renderer, (CANVAS_WIDTH / 2) + x, (CANVAS_HEIGHT / 2) - y);
 }
 
+/// Main drawing function
 void draw() {
+
     Color red = RGB(255, 0, 0);
     Color green = RGB(0, 255, 0);
     Color blue = RGB(0, 0, 255);
+    for (int i = 0 ; i < 1000 ; ++i) {
+        put_pixel(200-i, 100+i, red);
+    }
     put_pixel(100, 100, red);
     put_pixel(200, 100, green);
     put_pixel(300, 100, blue);
@@ -43,26 +53,21 @@ int main(int argc, char* argv[]) {
 
     // Create a window
     SDL_Window* window = SDL_CreateWindow("SDL2 Boilerplate", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    if (window == NULL) {
-        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
+    assert(window != 0);
 
     // Create a renderer
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (renderer == NULL) {
-        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
+    renderer = SDL_CreateRenderer(window, -1, 0);
+    assert(renderer != 0);
 
     // Main loop flag
     bool quit = false;
     SDL_Event e;
 
     /* // Clear the screen */
-    /* SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF); */
-    /* SDL_RenderClear(renderer); */
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_RenderClear(renderer);
     draw();
+    SDL_RenderPresent(renderer);
 
 
     // Main loop
@@ -74,9 +79,6 @@ int main(int argc, char* argv[]) {
                 quit = true;
             }
         }
-
-        // Update screen
-        SDL_RenderPresent(renderer);
     }
 
     // Destroy window and renderer
