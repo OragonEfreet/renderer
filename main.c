@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "linmath.h"
 #include <SDL2/SDL.h>
 
 #define CANVAS_WIDTH 800
@@ -19,6 +20,9 @@ typedef uint32_t Color;
 #define BLUE_C(c) (uint8_t)((c >> 8) & 0xFF)
 #define ALPHA_C(c) (uint8_t)(c & 0xFF)
 
+#define X 0
+#define Y 1
+
 SDL_Renderer* renderer = 0;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,18 +34,36 @@ void put_pixel(size_t x, size_t y, Color c) {
     SDL_RenderDrawPoint(renderer, (CANVAS_WIDTH / 2) + x, (CANVAS_HEIGHT / 2) - y);
 }
 
+void draw_line(vec2 p0, vec2 p1, Color c) {
+
+    const int x0 = p0[X]; const int y0 = p0[Y];
+    const int x1 = p1[X]; const int y1 = p1[Y];
+
+    const int a = (y1 - y0) / (x1 - x0);
+    const int b = y0 - a * x0;
+
+    for(int x = x0 ; x <= x1 ; ++x) {
+        const int y = a * x + b;
+        put_pixel(x, y, c);
+    }
+}
+
 /// Main drawing function
 void draw() {
 
-    Color red = RGB(255, 0, 0);
-    Color green = RGB(0, 255, 0);
-    Color blue = RGB(0, 0, 255);
-    for (int i = 0 ; i < 1000 ; ++i) {
-        put_pixel(200-i, 100+i, red);
-    }
-    put_pixel(100, 100, red);
-    put_pixel(200, 100, green);
-    put_pixel(300, 100, blue);
+    draw_line(
+        (vec2){0.0f, 0.0f}, 
+        (vec2){45.0f, 200.0f}, 
+        RGB(255, 0, 0)
+    );
+
+    /* Color red = RGB(255, 0, 0); */
+    /* Color green = RGB(0, 255, 0); */
+    /* Color blue = RGB(0, 0, 255); */
+    /* put_pixel(100, 100, red); */
+    /* put_pixel(200, 100, green); */
+    /* put_pixel(300, 100, blue); */
+
 }
 
 int main(int argc, char* argv[]) {
