@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -6,55 +7,109 @@
 #include "linmath.h"
 #include <SDL2/SDL.h>
 
-#define CANVAS_WIDTH 800
-#define CANVAS_HEIGHT 600
+#define CANVAS_WIDTH 640
+#define CANVAS_HEIGHT 480
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 600
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 960
 
 typedef uint32_t Color;
 
 #define RGB(r, g, b) (Color)((((uint8_t)r & 0xFF) << 24) | (((uint8_t)g & 0xFF) << 16) | (((uint8_t)b & 0xFF) << 8) | (uint8_t)0xFF)
-#define RED_C(c) (uint8_t)((c >> 24) & 0xFF)
-#define GREEN_C(c) (uint8_t)((c >> 16) & 0xFF)
-#define BLUE_C(c) (uint8_t)((c >> 8) & 0xFF)
-#define ALPHA_C(c) (uint8_t)(c & 0xFF)
+
+Color framebuffer[CANVAS_WIDTH * CANVAS_HEIGHT];
 
 #define X 0
 #define Y 1
+#define S_X(x) ((CANVAS_WIDTH / 2) + x)
+#define S_Y(y) ((CANVAS_HEIGHT / 2) - y)
+#define XY(x, y) (S_Y(y) * CANVAS_WIDTH + S_X(x))
+#define put_pixel(x, y, c) framebuffer[XY(x, y)] = c;
 
-SDL_Renderer* renderer = 0;
+/* void put_pixel(int x, int y, Color c) { */
+/*     int offset = XY(x, y); */
+/*     if(offset >= 0 && offset < (CANVAS_WIDTH * CANVAS_HEIGHT)) { */
+/*         framebuffer[offset] = c; */
+/*     } else { */
+/*         printf("Out of bound (%d, %d)\n", x, y); */
+/*     } */
+/* } */
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Drawing
 
 /// Write a single pixel on the canvas
-void put_pixel(size_t x, size_t y, Color c) {
-    SDL_SetRenderDrawColor(renderer, RED_C(c), GREEN_C(c), BLUE_C(c), ALPHA_C(c));
-    SDL_RenderDrawPoint(renderer, (CANVAS_WIDTH / 2) + x, (CANVAS_HEIGHT / 2) - y);
-}
 
+
+#ifdef DONT_TRUST_CHATGPT
 void draw_line(vec2 p0, vec2 p1, Color c) {
+    float x0 = p0[X]; float y0 = p0[Y];
+    float x1 = p1[X]; float y1 = p1[Y];
 
-    const int x0 = p0[X]; const int y0 = p0[Y];
-    const int x1 = p1[X]; const int y1 = p1[Y];
+    const int dx = x1 - x0;
+    const int dy = y1 - y0;
 
-    const int a = (y1 - y0) / (x1 - x0);
-    const int b = y0 - a * x0;
+    if(abs(dx) > abs(dy)) {
+        if(x0 > x1) { // Swap
+            const float temp = x0;
+            x0 = x1;
+            x1 = temp;
+        }
 
-    for(int x = x0 ; x <= x1 ; ++x) {
-        const int y = a * x + b;
-        put_pixel(x, y, c);
+        const float a = (y1 - y0) / (x1 - x0);
+        float y = y0;
+
+        for(int x = x0 ; x <= x1 ; ++x) {
+            put_pixel(x, (int)y, c);
+            y += a;
+        }
+    } else {
+        if(y0 > y1) { // Swap
+            const float temp = y0;
+            y0 = y1;
+            y1 = temp;
+        }
+
+        const float a = (x1 - x0) / (y1 - y0);
+        float x = x0;
+
+        for(int y = y0 ; y <= y1 ; ++y) {
+            put_pixel((int)x, y, c);
+            x += a;
+        }
     }
 }
+#else
+void draw_line(vec2 p0, vec2 p1, Color c) {
+    float dx = p1[X] - p0[X];
+    float dy = p1[Y] - p0[Y];
+    int steps = fabs(dx) > fabs(dy) ? fabs(dx) : fabs(dy);
+    float xIncrement = dx / steps;
+    float yIncrement = dy / steps;
+    float x = p0[X];
+    float y = p0[Y];
+
+    for(int i = 0; i <= steps; ++i) {
+        put_pixel((int)x, (int)y, c);
+        x += xIncrement;
+        y += yIncrement;
+    }
+}
+#endif
 
 /// Main drawing function
 void draw() {
 
     draw_line(
-        (vec2){0.0f, 0.0f}, 
-        (vec2){45.0f, 200.0f}, 
+        (vec2){-200.0f, -100.0f}, 
+        (vec2){240.f, 140.0f}, 
         RGB(255, 0, 0)
+    );
+
+    draw_line(
+        (vec2){-50.0f, -200.0f}, 
+        (vec2){60.0f, 240.0f}, 
+        RGB(0, 255, 0)
     );
 
     /* Color red = RGB(255, 0, 0); */
@@ -74,23 +129,25 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a window
-    SDL_Window* window = SDL_CreateWindow("SDL2 Boilerplate", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    SDL_Window* window = SDL_CreateWindow("Rasterizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     assert(window != 0);
 
     // Create a renderer
-    renderer = SDL_CreateRenderer(window, -1, 0);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
     assert(renderer != 0);
+
+    // Create the rendering texture
+    SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     // Main loop flag
     bool quit = false;
     SDL_Event e;
 
-    /* // Clear the screen */
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-    SDL_RenderClear(renderer);
     draw();
+    SDL_UpdateTexture(texture, 0, framebuffer, CANVAS_WIDTH * sizeof (uint32_t));
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, texture, 0, 0);
     SDL_RenderPresent(renderer);
-
 
     // Main loop
     while (!quit) {
