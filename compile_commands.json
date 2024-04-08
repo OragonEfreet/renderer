@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/home/kdorange/builds/cg_from_scratch",
+  "command": "/usr/bin/cc  -isystem /usr/include/SDL2 -g -std=gnu99 -o CMakeFiles/rasterizer.dir/main.c.o -c /home/kdorange/learn/cg_from_scratch/main.c",
+  "file": "/home/kdorange/learn/cg_from_scratch/main.c",
+  "output": "CMakeFiles/rasterizer.dir/main.c.o"
+},
+{
+  "directory": "/home/kdorange/builds/cg_from_scratch",
+  "command": "/usr/bin/cc  -isystem /usr/include/SDL2 -g -std=gnu99 -o CMakeFiles/rasterizer.dir/raster.c.o -c /home/kdorange/learn/cg_from_scratch/raster.c",
+  "file": "/home/kdorange/learn/cg_from_scratch/raster.c",
+  "output": "CMakeFiles/rasterizer.dir/raster.c.o"
+}
+]

@@ -1,70 +1,20 @@
 #include <assert.h>
-#include <math.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
+#include <math.h>
+#include <string.h>
 
-#include "linmath.h"
 #include <SDL2/SDL.h>
 
-#define CANVAS_WIDTH 800
-#define CANVAS_HEIGHT 800
-
-#define SCREEN_WIDTH (CANVAS_WIDTH * 1)
-#define SCREEN_HEIGHT (CANVAS_HEIGHT * 1)
-
-typedef uint32_t Color;
-
-#define RGB(r, g, b) (Color)((((uint8_t)r & 0xFF) << 24) | (((uint8_t)g & 0xFF) << 16) | (((uint8_t)b & 0xFF) << 8) | (uint8_t)0xFF)
+#include "raster.h"
 
 Color framebuffer[CANVAS_WIDTH * CANVAS_HEIGHT];
 
-#define X 0
-#define Y 1
-#define S_X(x) ((CANVAS_WIDTH / 2) + x)
-#define S_Y(y) ((CANVAS_HEIGHT / 2) - y)
-#define XY(x, y) (S_Y(y) * CANVAS_WIDTH + S_X(x))
-//*
-#define put_pixel(x, y, c) framebuffer[XY(x, y)] = c;
-/*/
-void put_pixel(int x, int y, Color c) {
-    int offset = XY(x, y);
-    if(offset >= 0 && offset < (CANVAS_WIDTH * CANVAS_HEIGHT)) {
-        framebuffer[offset] = c;
-    } else {
-        printf("Out of bound (%d, %d)\n", x, y);
-    }
-}
-//*/
+#define rad(angleInDegrees) ((angleInDegrees) * M_PI / 180.0f)
 
-////////////////////////////////////////////////////////////////////////////////
-/// Drawing
+void draw(float t) {
+    memset(framebuffer, 0, sizeof(Color) * CANVAS_WIDTH * CANVAS_HEIGHT);
 
-/// Write a single pixel on the canvas
-
-void draw_line(vec2 p0, vec2 p1, Color c) {
-    float dx = p1[X] - p0[X];
-    float dy = p1[Y] - p0[Y];
-    int steps = fabs(dx) > fabs(dy) ? fabs(dx) : fabs(dy);
-    float xIncrement = dx / steps;
-    float yIncrement = dy / steps;
-    float x = p0[X];
-    float y = p0[Y];
-    for(int i = 0; i <= steps; ++i) {
-        put_pixel((int)x, (int)y, c);
-        x += xIncrement;
-        y += yIncrement;
-    }
-}
-
-void draw_wireframe_triangle(vec2 p0, vec2 p1, vec2 p2, Color c) {
-    draw_line(p0, p1, c);
-    draw_line(p1, p2, c);
-    draw_line(p2, p0, c);
-}
-
-/// Main drawing function
-void draw() {
 
     /* put_pixel(100, 100, RGB(255, 0, 0)); */
 
@@ -80,13 +30,58 @@ void draw() {
     /*     RGB(0, 255, 0) */
     /* ); */
 
-    draw_wireframe_triangle(
-        (vec2){-200.f, -250.f}, 
-        (vec2){200.f, 50.f}, 
-        (vec2){20.f, 250.f}, 
-        RGB(0, 255, 0)
+
+    /* draw_wireframe_triangle( */
+    /*     framebuffer, */
+    /*     (vec2){-200.f, -250.f}, */ 
+    /*     (vec2){200.f, 50.f}, */ 
+    /*     (vec2){20.f, 250.f}, */ 
+    /*     RGB(0, 255, 0) */
+    /* ); */
+     const float a0 = rad(0.f) + t; 
+     const float cos_a0 = cosf(a0); 
+     const float sin_a0 = sinf(a0); 
+
+     const float a1 = rad(45.f) + t; 
+     const float cos_a1 = cosf(a1); 
+     const float sin_a1 = sinf(a1); 
+
+     const float a2 = rad(180.f) + t; 
+     const float cos_a2 = cosf(a2); 
+     const float sin_a2 = sinf(a2); 
+
+     const float r0 = 100.f; 
+     const float r1 = 200.f; 
+     const float r2 = 150.f; 
+    
+     float v0x = cos_a0 * r0;
+     float v0y = sin_a0 * r0;
+     vec2 v0 = { v0x, v0y };
+
+     float v1x = cos_a1 * r1;
+     float v1y = sin_a1 * r1;
+     vec2 v1 = { v1x, v1y };
+
+     float v2x = cos_a2 * r2;
+     float v2y = sin_a2 * r2;
+     vec2 v2 = { v2x, v2y };
+
+
+    draw_filled_triangle(
+        framebuffer,
+        v0, v1, v2,
+        RGB(0, 0, 255)
     );
 
+    draw_wireframe_triangle(
+        framebuffer,
+        v0, v1, v2,
+        RGB(255, 0, 0)
+    );
+
+     /* put_pixel(framebuffer, v0x, v0y, COLOR_WHITE); */
+     /* put_pixel(framebuffer, v1x, v1y, COLOR_WHITE); */
+     /* put_pixel(framebuffer, v2x, v2y, COLOR_WHITE); */
 
 }
 
@@ -112,13 +107,11 @@ int main(int argc, char* argv[]) {
     bool quit = false;
     SDL_Event e;
 
-    draw();
-    SDL_UpdateTexture(texture, 0, framebuffer, CANVAS_WIDTH * sizeof (uint32_t));
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, texture, 0, 0);
-    SDL_RenderPresent(renderer);
 
     // Main loop
+    float t = 0.f;
+    const float speed = 2.5f;
+    Uint64 ticks = SDL_GetTicks64();
     while (!quit) {
         // Handle events on queue
         while (SDL_PollEvent(&e) != 0) {
@@ -127,6 +120,15 @@ int main(int argc, char* argv[]) {
                 quit = true;
             }
         }
+        Uint64 current_ticks = SDL_GetTicks64();
+        t += ((float)(current_ticks - ticks) / 1000.f) * speed;
+        ticks = current_ticks;
+
+        draw(t);
+        SDL_UpdateTexture(texture, 0, framebuffer, CANVAS_WIDTH * sizeof (uint32_t));
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, texture, 0, 0);
+        SDL_RenderPresent(renderer);
     }
 
     // Destroy window and renderer
