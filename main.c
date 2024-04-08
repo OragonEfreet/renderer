@@ -16,13 +16,8 @@ void draw(float t) {
     memset(framebuffer, 0, sizeof(Color) * CANVAS_WIDTH * CANVAS_HEIGHT);
 
 
-    /* put_pixel(100, 100, RGB(255, 0, 0)); */
+    /* put_pixel(framebuffer, 0, 0, RGB(255, 0, 0)); */
 
-    /* draw_line( */
-    /*     (vec2){-200.0f, -100.0f}, */ 
-    /*     (vec2){240.f, 140.0f}, */ 
-    /*     RGB(255, 0, 0) */
-    /* ); */
 
     /* draw_line( */
     /*     (vec2){-50.0f, -200.0f}, */ 
@@ -33,55 +28,44 @@ void draw(float t) {
 
     /* draw_wireframe_triangle( */
     /*     framebuffer, */
-    /*     (vec2){-200.f, -250.f}, */ 
-    /*     (vec2){200.f, 50.f}, */ 
-    /*     (vec2){20.f, 250.f}, */ 
+    /*     (pixel){-200, -250}, */ 
+    /*     (pixel){200, 50}, */ 
+    /*     (pixel){20, 250}, */ 
     /*     RGB(0, 255, 0) */
     /* ); */
-     const float a0 = rad(0.f) + t; 
-     const float cos_a0 = cosf(a0); 
-     const float sin_a0 = sinf(a0); 
-
-     const float a1 = rad(45.f) + t; 
-     const float cos_a1 = cosf(a1); 
-     const float sin_a1 = sinf(a1); 
-
-     const float a2 = rad(180.f) + t; 
-     const float cos_a2 = cosf(a2); 
-     const float sin_a2 = sinf(a2); 
-
-     const float r0 = 100.f; 
-     const float r1 = 200.f; 
-     const float r2 = 150.f; 
-    
-     float v0x = cos_a0 * r0;
-     float v0y = sin_a0 * r0;
-     vec2 v0 = { v0x, v0y };
-
-     float v1x = cos_a1 * r1;
-     float v1y = sin_a1 * r1;
-     vec2 v1 = { v1x, v1y };
-
-     float v2x = cos_a2 * r2;
-     float v2y = sin_a2 * r2;
-     vec2 v2 = { v2x, v2y };
-
 
     draw_filled_triangle(
         framebuffer,
-        v0, v1, v2,
-        RGB(0, 0, 255)
+        (pixel){ (int)(cosf(rad(0.f)   + t) * 100.f),   (int)(sinf(rad(0.f) + t) * 100.f) },
+        (pixel){ (int)(cosf(rad(45.f)  + t) * 200.f),  (int)(sinf(rad(45.f) + t) * 200.f) },
+        (pixel){ (int)(cosf(rad(180.f) + t) * 150.f), (int)(sinf(rad(180.f) + t) * 150.f) },
+        COLOR_FIREBRICK
     );
 
-    draw_wireframe_triangle(
-        framebuffer,
-        v0, v1, v2,
-        RGB(255, 0, 0)
-    );
+    /* draw_wireframe_triangle( */
+    /*     framebuffer, */
+    /*     v0, v1, v2, */
+    /*     COLOR_SPRING_GREEN */
+    /* ); */
 
      /* put_pixel(framebuffer, v0x, v0y, COLOR_WHITE); */
      /* put_pixel(framebuffer, v1x, v1y, COLOR_WHITE); */
      /* put_pixel(framebuffer, v2x, v2y, COLOR_WHITE); */
+
+    draw_line(
+        framebuffer,
+        (pixel){0, 0}, (pixel){10, 0}, 
+        COLOR_RED
+    );
+
+    draw_line(
+        framebuffer,
+        (pixel){0, 0}, (pixel){0, 10}, 
+        COLOR_GREEN
+    );
+
+    put_pixel(framebuffer, 0, 0, COLOR_WHITE);
+
 
 }
 
@@ -110,7 +94,7 @@ int main(int argc, char* argv[]) {
 
     // Main loop
     float t = 0.f;
-    const float speed = 2.5f;
+    const float speed = .5f;
     Uint64 ticks = SDL_GetTicks64();
     while (!quit) {
         // Handle events on queue

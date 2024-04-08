@@ -1,14 +1,12 @@
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "raster.h"
 
 #define X 0
 #define Y 1
-#define S_X(x) ((CANVAS_WIDTH / 2) + x)
-#define S_Y(y) ((CANVAS_HEIGHT / 2) - y)
-#define XY(x, y) (S_Y(y) * CANVAS_WIDTH + S_X(x))
 /* #define put_pixel(x, y, c) framebuffer[XY(x, y)] = c; */
 
 typedef struct { float a; float d; float i; float ie; } pixel_interpolate;
@@ -16,87 +14,106 @@ typedef struct { float a; float d; float i; float ie; } pixel_interpolate;
 #define done_interpolate(dat) (dat.i>dat.ie)
 #define step_interpolate(dat) ++dat.i,dat.d+=dat.a 
 
-void put_pixel(Color* fb, int x, int y, Color c) {
-    int offset = XY(x, y);
-    assert(offset >= 0 && offset < (CANVAS_WIDTH * CANVAS_HEIGHT));
-    if(offset >= 0 && offset < (CANVAS_WIDTH * CANVAS_HEIGHT)) {
-        fb[offset] = c;
-    } else {
-        printf("Out of bound (%d, %d)\n", x, y);
+void draw_line(Color* fb, pixel p0, pixel p1, Color c) {
+    int x0 = p0[X]; int y0 = p0[Y];
+    const int x1 = p1[X]; const int y1 = p1[Y];
+
+    const int dx = abs(x1 - x0);
+    const int dy = abs(y1 - y0);
+    const int sx = (x0 < x1) ? 1 : -1;
+    const int sy = (y0 < y1) ? 1 : -1;
+    int err = dx - dy;
+
+    while (1) {
+        put_pixel(fb, x0, y0, c);
+        if (x0 == x1 && y0 == y1) break;
+        const int e2 = 2 * err;
+        if (e2 > -dy) {
+            err -= dy;
+            x0 += sx;
+        }
+        if (e2 < dx) {
+            err += dx;
+            y0 += sy;
+        }
     }
 }
 
-void draw_line(Color* fb, vec2 p0, vec2 p1, Color c) {
-    float dx = p1[X] - p0[X];
-    float dy = p1[Y] - p0[Y];
-    int steps = fabs(dx) > fabs(dy) ? fabs(dx) : fabs(dy);
-    float xIncrement = dx / steps;
-    float yIncrement = dy / steps;
-    float x = p0[X];
-    float y = p0[Y];
-    for(int i = 0; i <= steps; ++i) {
-        put_pixel(fb, (int)x, (int)y, c);
-        x += xIncrement;
-        y += yIncrement;
-    }
-}
 
-void draw_wireframe_triangle(Color* fb, vec2 p0, vec2 p1, vec2 p2, Color c) {
+void draw_wireframe_triangle(Color* fb, pixel p0, pixel p1, pixel p2, Color c) {
     draw_line(fb, p0, p1, c);
     draw_line(fb, p1, p2, c);
     draw_line(fb, p2, p0, c);
 }
 
-
-void draw_filled_triangle(Color* fb, vec2 v0, vec2 v1, vec2 v2, Color c) {
-    float y0 = v0[Y];
-    float y1 = v1[Y];
-    float y2 = v2[Y];
-
-    float** p0 = &v0;
-    float** p1 = &v1;
-    float** p2 = &v2;
-    float** t;
-
-#define SWAP_PTRS(a, b) t = a; a = b; b = t
-    if(y1 < y0) {SWAP_PTRS(p1, p0);}
-    if(y2 < y0) {SWAP_PTRS(p2, p0);}
-    if(y2 < y1) {SWAP_PTRS(p2, p1);}
-#undef SWAP_PTRS
-
-    float x0 = v0[X]; y0 = v0[Y];
-    float x1 = v1[X]; y1 = v1[Y];
-    float x2 = v2[X]; y2 = v2[Y];
-
-    pixel_interpolate x02 = start_interpolate(y0, x0, y2, x2);
-     
-    int y = y0;
-    for(
-        pixel_interpolate x01 = start_interpolate(y0, x0, y1, x1);
-        !done_interpolate(x01);
-        step_interpolate(x01)
-    ) {
-        draw_line(
-            fb,
-            (vec2){x02.d, y}, 
-            (vec2){x01.d, y}, 
-            c
-        );
-        ++y;
-        step_interpolate(x02);
+void draw_filled_triangle(Color* fb, pixel p0, pixel p1, pixel p2, Color c) {
+    // Sorting vertices vertically
+    if (p0[1] > p1[1]) {
+        int temp_x = p0[0];
+        int temp_y = p0[1];
+        p0[0] = p1[0];
+        p0[1] = p1[1];
+        p1[0] = temp_x;
+        p1[1] = temp_y;
     }
-    for(
-        pixel_interpolate x12 = start_interpolate(y1, x1, y2, x2);
-        !done_interpolate(x12);
-        step_interpolate(x12)
-    ) {
-        draw_line(
-            fb,
-            (vec2){x02.d, y}, 
-            (vec2){x12.d, y}, 
-            c
-        );
-        ++y;
-        step_interpolate(x02);
+    if (p0[1] > p2[1]) {
+        int temp_x = p0[0];
+        int temp_y = p0[1];
+        p0[0] = p2[0];
+        p0[1] = p2[1];
+        p2[0] = temp_x;
+        p2[1] = temp_y;
+    }
+    if (p1[1] > p2[1]) {
+        int temp_x = p1[0];
+        int temp_y = p1[1];
+        p1[0] = p2[0];
+        p1[1] = p2[1];
+        p2[0] = temp_x;
+        p2[1] = temp_y;
+    }
+
+    int total_height = p2[1] - p0[1];
+
+    // Drawing upper part of triangle
+    for (int y = p0[1]; y <= p1[1]; y++) {
+        int segment_height = p1[1] - p0[1] + 1;
+        int alpha = (y - p0[1]) * 255 / total_height;
+        int beta = (y - p0[1]) * 255 / segment_height;
+
+        int ax = p0[0] + ((p2[0] - p0[0]) * alpha + 128) / 255;
+        int bx = p0[0] + ((p1[0] - p0[0]) * beta + 128) / 255;
+
+        if (ax > bx) {
+            int temp = ax;
+            ax = bx;
+            bx = temp;
+        }
+
+        for (int x = ax; x <= bx; x++) {
+            put_pixel(fb, x, y, c);
+        }
+    }
+
+    // Drawing bottom part of triangle
+    for (int y = p1[1] + 1; y <= p2[1]; y++) {
+        int segment_height = p2[1] - p1[1] + 1;
+        int alpha = (y - p0[1]) * 255 / total_height;
+        int beta = (y - p1[1]) * 255 / segment_height;
+
+        int ax = p0[0] + ((p2[0] - p0[0]) * alpha + 128) / 255;
+        int bx = p1[0] + ((p2[0] - p1[0]) * beta + 128) / 255;
+
+        if (ax > bx) {
+            int temp = ax;
+            ax = bx;
+            bx = temp;
+        }
+
+        for (int x = ax; x <= bx; x++) {
+            put_pixel(fb, x, y, c);
+        }
     }
 }
+
+     
