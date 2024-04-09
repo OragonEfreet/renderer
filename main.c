@@ -39,7 +39,7 @@ void draw(float t) {
         (pixel){ (int)(cosf(rad(0.f)   + t) * 100.f),   (int)(sinf(rad(0.f) + t) * 100.f) },
         (pixel){ (int)(cosf(rad(45.f)  + t) * 200.f),  (int)(sinf(rad(45.f) + t) * 200.f) },
         (pixel){ (int)(cosf(rad(180.f) + t) * 150.f), (int)(sinf(rad(180.f) + t) * 150.f) },
-        COLOR_FIREBRICK
+        COLOR_AQUAMARINE
     );
 
     /* draw_wireframe_triangle( */
