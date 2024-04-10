@@ -13,7 +13,7 @@ Color framebuffer[CANVAS_WIDTH * CANVAS_HEIGHT];
 #define rad(angleInDegrees) ((angleInDegrees) * M_PI / 180.0f)
 
 void draw(float t) {
-    memset(framebuffer, 0, sizeof(Color) * CANVAS_WIDTH * CANVAS_HEIGHT);
+    memset(framebuffer, 0x21, sizeof(Color) * CANVAS_WIDTH * CANVAS_HEIGHT);
 
 
     /* put_pixel(framebuffer, 0, 0, RGB(255, 0, 0)); */
