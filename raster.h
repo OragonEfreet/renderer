@@ -1,15 +1,14 @@
 #pragma once
 
 #include <stdint.h>
-#include <assert.h>
 
-#include "linmath.h"
+#define SCALE 1
 
-#define CANVAS_WIDTH 800
-#define CANVAS_HEIGHT 800
+#define CANVAS_WIDTH (20 * SCALE)
+#define CANVAS_HEIGHT (20 * SCALE)
 
-#define SCREEN_WIDTH (CANVAS_WIDTH * 1)
-#define SCREEN_HEIGHT (CANVAS_HEIGHT * 1)
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 800
 
 #define S_X(x) ((CANVAS_WIDTH / 2) + x)
 #define S_Y(y) ((CANVAS_HEIGHT / 2) - y)
@@ -29,6 +28,7 @@ typedef int pixel[2];
 void draw_line(Color* fb, pixel p0, pixel p1, Color c);
 void draw_wireframe_triangle(Color* fb, pixel p0, pixel p1, pixel p2, Color c);
 void draw_filled_triangle(Color* fb, pixel p0, pixel p1, pixel p2, Color c);
+void draw_filled_triangle_2(Color* fb, pixel p0, pixel p1, pixel p2, Color c);
 
 
 #define COLOR_BLACK               RGB(0x00, 0x00, 0x00)

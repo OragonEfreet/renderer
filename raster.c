@@ -1,16 +1,18 @@
+#include <stdbool.h>
 #include <stdlib.h>
+
+#include <math.h>
+#include <assert.h>
+
+#include <stdio.h>
 
 #include "raster.h"
 
 #define X 0
 #define Y 1
 
-typedef struct { float a; float d; int i; int ie; } interpolate_iterator;
-#define interpolate_begin(i0,d0,i1,d1) {.a=((float)((d1)-(d0)))/((float)((i1)-(i0))),.d=d0,.i=i0,.ie=i1}
-#define interpolate_done(dat) (dat.i>dat.ie)
-#define interpolate_next(dat) ++dat.i,dat.d+=dat.a 
-
 void draw_line(Color* fb, pixel p0, pixel p1, Color c) {
+    /// Bresenham's line algorithm
     int x0 = p0[X]; int y0 = p0[Y];
     const int x1 = p1[X]; const int y1 = p1[Y];
 
@@ -42,50 +44,68 @@ void draw_wireframe_triangle(Color* fb, pixel p0, pixel p1, pixel p2, Color c) {
     draw_line(fb, p2, p0, c);
 }
 
-/* void draw_filled_triangle(Color* fb, pixel v0, pixel v1, pixel v2, Color c) { */
+typedef struct {
+    float a;
+    float d;
+} interp;
+
+static inline interp interp_begin(int i0, float d0, int i1, float d1) {
+    return (interp) {
+        .a = (d1 - d0) / ((float)i1 - (float)i0),
+        .d = d0
+    };
+}
+
+static inline float interp_step(interp* i) {
+    return i->d += i->a;
+}
+
+/* #define interp_a(i0,d0,i1,d1) ((float)((d1)-(d0)))/((float)((i1)-(i0))) */
+/* #define interp_begin(F, i0,d0,i1,d1) float F ## _a = interp_a(i0,d0,i1,d1), F ## _d = d0 */
+
+
 #define SWAP_INT(a, b) a=a^b;b=a^b;a=a^b
+#define SWAP_PXL(a, b) SWAP_INT(a[X], b[X]);SWAP_INT(a[Y], b[Y])
 void draw_filled_triangle(Color* fb, pixel p0, pixel p1, pixel p2, Color c) {
+    // Sorts p0 < p1 < p2
+    if(p1[Y] < p0[Y]) {SWAP_PXL(p1, p0);}
+    if(p2[Y] < p0[Y]) {SWAP_PXL(p2, p0);}
+    if(p2[Y] < p1[Y]) {SWAP_PXL(p2, p1);}
 
-    if(p1[Y] < p0[Y]) {SWAP_INT(p1[X], p0[X]);SWAP_INT(p1[Y], p0[Y]);}
-    if(p2[Y] < p0[Y]) {SWAP_INT(p2[X], p0[X]);SWAP_INT(p2[Y], p0[Y]);}
-    if(p2[Y] < p1[Y]) {SWAP_INT(p2[X], p1[X]);SWAP_INT(p2[Y], p1[Y]);}
-    
-    int total_height = p2[Y] - p0[Y];
+    // Make interpolation variables for the triangle edges
+    interp x01 = interp_begin(p0[Y], p0[X], p1[Y], p1[X]);
+    interp x12 = interp_begin(p1[Y], p1[X], p2[Y], p2[X]);
+    interp x02 = interp_begin(p0[Y], p0[X], p2[Y], p2[X]);
 
-    // Drawing bottom part of triangle
-    int segment_height = p2[Y] - p1[Y] + 1;
-    for (int y = p1[Y] + 1; y <= p2[Y]; y++) {
+    for(int y = p0[Y] ; y < p1[Y] ; ++y) {
+        int x_left = x01.d;
+        int x_right = x02.d;
 
-        float alpha = (float)(y - p0[Y]) / total_height;
-        float beta = (float)(y - p1[Y]) / segment_height;
+        if (x_right < x_left) {SWAP_INT(x_right, x_left);}
 
-        int ax = p0[X] + (p2[X] - p0[X]) * alpha;
-        int bx = p1[X] + (p2[X] - p1[X]) * beta;
-
-        if (ax > bx) { SWAP_INT(ax, bx); }
-
-        for (int x = ax; x <= bx; x++) {
+        for(int x = x_left ; x <= x_right; ++x) {
             put_pixel(fb, x, y, c);
         }
+
+        interp_step(&x01);
+        interp_step(&x02);
     }
 
-    // Drawing upper part of triangle
-    segment_height = p1[Y] - p0[Y] + 1;
-    for (int y = p0[Y]; y <= p1[Y]; y++) {
+    for(int y = p1[Y] ; y <= p2[Y] ; ++y) {
+        int x_left = x12.d;
+        int x_right = x02.d;
 
-        float alpha = (float)(y - p0[Y]) / total_height;
-        float beta = (float)(y - p0[Y]) / segment_height;
+        if (x_right < x_left) {SWAP_INT(x_right, x_left);}
 
-        int ax = p0[X] + (p2[X] - p0[X]) * alpha;
-        int bx = p0[X] + (p1[X] - p0[X]) * beta;
-
-        if (ax > bx) { SWAP_INT(ax, bx); }
-
-        for (int x = ax; x <= bx; x++) {
+        for(int x = x_left ; x <= x_right; ++x) {
             put_pixel(fb, x, y, c);
         }
+
+        interp_step(&x12);
+        interp_step(&x02);
     }
 }
+#undef SWAP_PXL
 #undef SWAP_INT
 
-     
+
