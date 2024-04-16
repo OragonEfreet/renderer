@@ -34,6 +34,7 @@ void draw(float t) {
     pixel A = {5*SCALE, 9*SCALE};
     pixel B = {-6*SCALE, 3*SCALE};
     pixel C = {2*SCALE, -7*SCALE};
+    pixel D = {9*SCALE, 0*SCALE};
 
     /* put_pixel(framebuffer, 0, 0, RGB(255, 0, 0)); */
 
@@ -41,19 +42,29 @@ void draw(float t) {
      put_pixel(framebuffer, B[0], B[1], COLOR_WHITE);
      put_pixel(framebuffer, C[0], C[1], COLOR_WHITE);
 
+    /* draw_filled_triangle( */
+    /*     framebuffer, */
+    /*     A, B, C, */
+    /*     RGB(100, 100, 100) */
+    /* ); */
+
     draw_filled_triangle(
         framebuffer,
-        A, B, C,
+        A, D, C,
         RGB(100, 100, 100)
     );
 
-    /* draw_filled_triangle_2( */
-    /*     framebuffer, */
-    /*     (pixel){ (int)(cosf(rad(0.f)   + t) * 100.f),   (int)(sinf(rad(0.f) + t) * 100.f) }, */
-    /*     (pixel){ (int)(cosf(rad(45.f)  + t) * 200.f),  (int)(sinf(rad(45.f) + t) * 200.f) }, */
-    /*     (pixel){ (int)(cosf(rad(180.f) + t) * 150.f), (int)(sinf(rad(180.f) + t) * 150.f) }, */
-    /*     COLOR_ORANGE */
-    /* ); */
+    float dist_a = 7.f * SCALE;
+    float dist_b = 8.f * SCALE;
+    float dist_c = 9.f * SCALE;
+
+    draw_filled_triangle(
+        framebuffer,
+        (pixel){ (int)(cosf(rad(0.f)   + t) * dist_a),   (int)(sinf(rad(0.f) + t) * dist_a) },
+        (pixel){ (int)(cosf(rad(45.f)  + t) * dist_b),  (int)(sinf(rad(45.f) + t) * dist_b) },
+        (pixel){ (int)(cosf(rad(180.f) + t) * dist_c), (int)(sinf(rad(180.f) + t) * dist_c) },
+        COLOR_ORANGE
+    );
 
     /* draw_wireframe_triangle( */
     /*     framebuffer, */
