@@ -10,6 +10,7 @@
 
 #define X 0
 #define Y 1
+#define H 2
 
 void draw_line(Color* fb, pixel p0, pixel p1, Color c) {
     /// Bresenham's line algorithm
@@ -74,8 +75,11 @@ void draw_filled_triangle(Color* fb, pixel p0, pixel p1, pixel p2, Color c) {
 
     // Make interpolation variables for the triangle edges
     interp x01 = interp_begin(p0[Y], p0[X], p1[Y], p1[X]);
+    interp h01 = interp_begin(p0[Y], ((float)p0[H]) / 255.f, p1[Y], ((float)p1[H]) / 255.f);
     interp x12 = interp_begin(p1[Y], p1[X], p2[Y], p2[X]);
+    interp h12 = interp_begin(p1[Y], ((float)p1[H]) / 255.f, p2[Y], ((float)p2[H]) / 255.f);
     interp x02 = interp_begin(p0[Y], p0[X], p2[Y], p2[X]);
+    interp h02 = interp_begin(p0[Y], ((float)p0[H]) / 255.f, p2[Y], ((float)p2[H]) / 255.f);
 
     for(int y = p0[Y] ; y < p1[Y] ; ++y) {
         int x_left = x01.d;

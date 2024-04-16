@@ -16,7 +16,7 @@
 
 typedef uint32_t Color;
 
-typedef int pixel[2];
+typedef int pixel[3];
 
 #define RGB(r, g, b) (Color)((((uint8_t)r & 0xFF) << 24) | (((uint8_t)g & 0xFF) << 16) | (((uint8_t)b & 0xFF) << 8) | (uint8_t)0xFF)
 #define RGBA(r, g, b, a) (Color)((((uint8_t)r & 0xFF) << 24) | (((uint8_t)g & 0xFF) << 16) | (((uint8_t)b & 0xFF) << 8) | (uint8_t)a)
