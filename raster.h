@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#define SCALE 10
+#define SCALE 4
 
 #define CANVAS_WIDTH (20 * SCALE)
 #define CANVAS_HEIGHT (20 * SCALE)
@@ -20,6 +20,10 @@ typedef int pixel[3];
 
 #define RGB(r, g, b) (Color)((((uint8_t)r & 0xFF) << 24) | (((uint8_t)g & 0xFF) << 16) | (((uint8_t)b & 0xFF) << 8) | (uint8_t)0xFF)
 #define RGBA(r, g, b, a) (Color)((((uint8_t)r & 0xFF) << 24) | (((uint8_t)g & 0xFF) << 16) | (((uint8_t)b & 0xFF) << 8) | (uint8_t)a)
+#define C_RED(rgba) (uint8_t)((rgba >> 24) & 0xFF)
+#define C_GREEN(rgba) (uint8_t)((rgba >> 16) & 0xFF)
+#define C_BLUE(rgba) (uint8_t)((rgba >> 8) & 0xFF)
+#define C_ALPHA(rgba) (uint8_t)(rgba & 0xFF)
 
 
 /* #define put_pixel(fb, x, y, c) if(x >= 0 && y >= 0 && x < CANVAS_WIDTH && y < CANVAS_HEIGHT) fb[XY(x, y)] = c */

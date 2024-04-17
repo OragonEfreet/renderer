@@ -15,40 +15,49 @@ Color framebuffer[CANVAS_WIDTH * CANVAS_HEIGHT];
 #define COLOR_B 0x191919FF
 
 void clear(Color* fb) {
-    for(size_t y = 0 ; y < CANVAS_HEIGHT ; ++y) {
-        for(size_t x = 0 ; x < CANVAS_WIDTH ; ++x) {
-            if (y % 2) {
-                *(fb++) = x % 2 ? COLOR_A : COLOR_B;
-            } else {
-                *(fb++) = x % 2 ? COLOR_B : COLOR_A;
-            }
-        }
-    }
-    /* memset(fb, 0x21, sizeof(Color) * CANVAS_WIDTH * CANVAS_HEIGHT); */
+    /* for(size_t y = 0 ; y < CANVAS_HEIGHT ; ++y) { */
+    /*     for(size_t x = 0 ; x < CANVAS_WIDTH ; ++x) { */
+    /*         if (y % 2) { */
+    /*             *(fb++) = x % 2 ? COLOR_A : COLOR_B; */
+    /*         } else { */
+    /*             *(fb++) = x % 2 ? COLOR_B : COLOR_A; */
+    /*         } */
+    /*     } */
+    /* } */
+    memset(fb, 0x00, sizeof(Color) * CANVAS_WIDTH * CANVAS_HEIGHT);
 }
 
 void draw(float t) {
     clear(framebuffer);
 
-    pixel A = {5*SCALE, 9*SCALE, 0xFF};
-    pixel B = {-6*SCALE, 3*SCALE, 0x22};
-    pixel C = {2*SCALE, -7*SCALE, 0xFF};
+    pixel A = {5*SCALE, 9*SCALE, 0x00};
+    pixel B = {-6*SCALE, 3*SCALE, 0xff};
+    pixel C = {2*SCALE, -7*SCALE, 0x22};
+    pixel D = {9*SCALE, 0*SCALE, 0xFF};
 
     /* put_pixel(framebuffer, 0, 0, RGB(255, 0, 0)); */
 
-     put_pixel(framebuffer, A[0], A[1], COLOR_WHITE);
-     put_pixel(framebuffer, B[0], B[1], COLOR_WHITE);
-     put_pixel(framebuffer, C[0], C[1], COLOR_WHITE);
+    /* draw_filled_triangle(framebuffer, A, B, C, RGB(0, 255, 0)); */
 
-    draw_filled_triangle(framebuffer, A, B, C, RGB(0, 255, 0));
+     put_pixel(framebuffer, A[0], A[1], COLOR_RED);
+     put_pixel(framebuffer, B[0], B[1], COLOR_GREEN);
+     put_pixel(framebuffer, C[0], C[1], COLOR_BLUE);
 
-    /* draw_filled_triangle_2( */
-    /*     framebuffer, */
-    /*     (pixel){ (int)(cosf(rad(0.f)   + t) * 100.f),   (int)(sinf(rad(0.f) + t) * 100.f) }, */
-    /*     (pixel){ (int)(cosf(rad(45.f)  + t) * 200.f),  (int)(sinf(rad(45.f) + t) * 200.f) }, */
-    /*     (pixel){ (int)(cosf(rad(180.f) + t) * 150.f), (int)(sinf(rad(180.f) + t) * 150.f) }, */
-    /*     COLOR_ORANGE */
-    /* ); */
+    float dist = 6.f * SCALE;
+    float angle_a = 0.f;
+    float angle_b = (2.f * M_PI) / 3.f;
+    float angle_c = 2.f * angle_b;
+
+    /* t /= 5.f; */
+
+
+    draw_filled_triangle(
+        framebuffer,
+        (pixel){ (int)(cosf(angle_a   + t) * dist),   (int)(sinf(angle_a + t) * dist), 0xFF },
+        (pixel){ (int)(cosf(angle_b  + t) * dist),  (int)(sinf(angle_b + t) * dist), 0x00 },
+        (pixel){ (int)(cosf(angle_c + t) * dist), (int)(sinf(angle_c + t) * dist), 0x00 },
+        COLOR_ORANGE
+    );
 
     /* draw_wireframe_triangle( */
     /*     framebuffer, */
