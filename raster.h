@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#define SCALE 4
+#define SCALE 40
 
 #define CANVAS_WIDTH (20 * SCALE)
 #define CANVAS_HEIGHT (20 * SCALE)

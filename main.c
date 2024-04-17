@@ -32,16 +32,16 @@ void draw(float t) {
 
     pixel A = {5*SCALE, 9*SCALE, 0x00};
     pixel B = {-6*SCALE, 3*SCALE, 0xff};
-    pixel C = {2*SCALE, -7*SCALE, 0x22};
+    pixel C = {2*SCALE, -7*SCALE, 0x33};
     pixel D = {9*SCALE, 0*SCALE, 0xFF};
 
     /* put_pixel(framebuffer, 0, 0, RGB(255, 0, 0)); */
 
-    /* draw_filled_triangle(framebuffer, A, B, C, RGB(0, 255, 0)); */
+    draw_filled_triangle(framebuffer, A, B, C, RGB(0, 255, 0));
 
-     put_pixel(framebuffer, A[0], A[1], COLOR_RED);
-     put_pixel(framebuffer, B[0], B[1], COLOR_GREEN);
-     put_pixel(framebuffer, C[0], C[1], COLOR_BLUE);
+    /* put_pixel(framebuffer, A[0], A[1], COLOR_RED); */
+    /* put_pixel(framebuffer, B[0], B[1], COLOR_GREEN); */
+    /* put_pixel(framebuffer, C[0], C[1], COLOR_BLUE); */
 
     float dist = 6.f * SCALE;
     float angle_a = 0.f;
@@ -55,7 +55,7 @@ void draw(float t) {
         framebuffer,
         (pixel){ (int)(cosf(angle_a   + t) * dist),   (int)(sinf(angle_a + t) * dist), 0xFF },
         (pixel){ (int)(cosf(angle_b  + t) * dist),  (int)(sinf(angle_b + t) * dist), 0x00 },
-        (pixel){ (int)(cosf(angle_c + t) * dist), (int)(sinf(angle_c + t) * dist), 0x00 },
+        (pixel){ (int)(cosf(angle_c + t) * dist), (int)(sinf(angle_c + t) * dist), 0x33 },
         COLOR_ORANGE
     );
 

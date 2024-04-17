@@ -67,9 +67,9 @@ void draw_wireframe_triangle(Color* fb, pixel p0, pixel p1, pixel p2, Color c) {
 #define interp_step(F) F ## _d += F ## _a
 
 static void set_pixel(Color* fb, int x, int y, Color c) {
-    Color* ofst = fb+XY(x, y);
-    if(*ofst != 0x00000000)
-        c = COLOR_RED;
+    /* Color* ofst = fb+XY(x, y); */
+    /* if(*ofst != 0x00000000) */
+    /*     c = COLOR_RED; */
     put_pixel(fb, x,y,c);
 }
 
@@ -142,7 +142,7 @@ static bool pa = true;
             int right_x = interp_value(x02); 
 
             float left_h = interp_value(h12); 
-            float right_h = interp_value(h12); 
+            float right_h = interp_value(h02); 
 
             if(right_x < left_x) {
                 SWAP_INT(left_x, right_x);
