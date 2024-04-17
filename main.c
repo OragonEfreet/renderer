@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 
 #include "raster.h"
+#include "linmath.h"
 
 Color framebuffer[CANVAS_WIDTH * CANVAS_HEIGHT];
 
@@ -27,8 +28,7 @@ void clear(Color* fb) {
     memset(fb, 0x00, sizeof(Color) * CANVAS_WIDTH * CANVAS_HEIGHT);
 }
 
-void draw(float t) {
-    clear(framebuffer);
+void draw_triangles(float t) {
 
     pixel A = {5*SCALE, 9*SCALE, 0x00};
     pixel B = {-6*SCALE, 3*SCALE, 0xff};
@@ -73,6 +73,69 @@ void draw(float t) {
 
 
 
+
+}
+
+#define VIEWPORT_WIDTH 1.f
+#define VIEWPORT_HEIGHT 1.f
+
+void viewport_to_canvas(const vec2 v, pixel p) {
+    static const float w_ratio = (float)CANVAS_WIDTH  / VIEWPORT_WIDTH;
+    static const float h_ratio = (float)CANVAS_HEIGHT  / VIEWPORT_HEIGHT;
+
+    p[0] = v[0] * w_ratio;
+    p[1] = v[1] * h_ratio;
+}
+
+void project_vertex(const vec3 v, pixel p) {
+    float d = 1.f;
+    viewport_to_canvas(
+        (vec2) { v[0] * d / v[2], v[1] * d / v[2], }, p
+    );
+}
+
+
+
+void draw_projected_rectangles(float t) {
+
+    // The four "front" vertices
+    vec3 vAf = {-2.f, -0.5f, 5.f};
+    pixel pAf;
+    project_vertex(vAf, pAf);
+    vec3 vBf = {-2.f,  0.5f, 5.f}; pixel pBf; project_vertex(vBf, pBf);
+    vec3 vCf = {-1.f,  0.5f, 5.f}; pixel pCf; project_vertex(vCf, pCf);
+    vec3 vDf = {-1.f, -0.5f, 5.f}; pixel pDf; project_vertex(vDf, pDf);
+
+    // The four "back" vertices
+    vec3 vAb = {-2.f, -0.5f, 6.f}; pixel pAb; project_vertex(vAb, pAb);
+    vec3 vBb = {-2.f,  0.5f, 6.f}; pixel pBb; project_vertex(vBb, pBb);
+    vec3 vCb = {-1.f,  0.5f, 6.f}; pixel pCb; project_vertex(vCb, pCb);
+    vec3 vDb = {-1.f, -0.5f, 6.f}; pixel pDb; project_vertex(vDb, pDb);
+
+    // The back face
+    draw_line(framebuffer, pAb, pBb, COLOR_RED);
+    draw_line(framebuffer, pBb, pCb, COLOR_RED);
+    draw_line(framebuffer, pCb, pDb, COLOR_RED);
+    draw_line(framebuffer, pDb, pAb, COLOR_RED);
+
+    // The front-to-back edges
+    draw_line(framebuffer, pAf, pAb, COLOR_GREEN);
+    draw_line(framebuffer, pBf, pBb, COLOR_GREEN);
+    draw_line(framebuffer, pCf, pCb, COLOR_GREEN);
+    draw_line(framebuffer, pDf, pDb, COLOR_GREEN);
+
+    // The front face
+    draw_line(framebuffer, pAf, pBf, COLOR_BLUE);
+    draw_line(framebuffer, pBf, pCf, COLOR_BLUE);
+    draw_line(framebuffer, pCf, pDf, COLOR_BLUE);
+    draw_line(framebuffer, pDf, pAf, COLOR_BLUE);
+
+}
+
+void draw(float t) {
+    clear(framebuffer);
+    draw_triangles(t);
+    draw_projected_rectangles(t);
 }
 
 int main(int argc, char* argv[]) {
