@@ -2,13 +2,9 @@
 
 #include <stdint.h>
 
-#define SCALE 40
-
+#define SCALE 10
 #define CANVAS_WIDTH (20 * SCALE)
 #define CANVAS_HEIGHT (20 * SCALE)
-
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 800
 
 #define S_X(x) ((CANVAS_WIDTH / 2) + x)
 #define S_Y(y) ((CANVAS_HEIGHT / 2) - y)

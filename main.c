@@ -15,17 +15,19 @@ Color framebuffer[CANVAS_WIDTH * CANVAS_HEIGHT];
 #define COLOR_A 0x212121FF
 #define COLOR_B 0x191919FF
 
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 800
+
 void clear(Color* fb) {
-    /* for(size_t y = 0 ; y < CANVAS_HEIGHT ; ++y) { */
-    /*     for(size_t x = 0 ; x < CANVAS_WIDTH ; ++x) { */
-    /*         if (y % 2) { */
-    /*             *(fb++) = x % 2 ? COLOR_A : COLOR_B; */
-    /*         } else { */
-    /*             *(fb++) = x % 2 ? COLOR_B : COLOR_A; */
-    /*         } */
-    /*     } */
-    /* } */
-    memset(fb, 0x00, sizeof(Color) * CANVAS_WIDTH * CANVAS_HEIGHT);
+    for(size_t y = 0 ; y < CANVAS_HEIGHT ; ++y) {
+        for(size_t x = 0 ; x < CANVAS_WIDTH ; ++x) {
+            if (y % 2) {
+                *(fb++) = x % 2 ? COLOR_A : COLOR_B;
+            } else {
+                *(fb++) = x % 2 ? COLOR_B : COLOR_A;
+            }
+        }
+    }
 }
 
 void draw_triangles(float t) {
@@ -37,7 +39,7 @@ void draw_triangles(float t) {
 
     /* put_pixel(framebuffer, 0, 0, RGB(255, 0, 0)); */
 
-    draw_filled_triangle(framebuffer, A, B, C, RGB(0, 255, 0));
+    draw_filled_triangle(framebuffer, A, B, C, COLOR_DARK_CYAN);
 
     /* put_pixel(framebuffer, A[0], A[1], COLOR_RED); */
     /* put_pixel(framebuffer, B[0], B[1], COLOR_GREEN); */
@@ -56,7 +58,7 @@ void draw_triangles(float t) {
         (pixel){ (int)(cosf(angle_a   + t) * dist),   (int)(sinf(angle_a + t) * dist), 0xFF },
         (pixel){ (int)(cosf(angle_b  + t) * dist),  (int)(sinf(angle_b + t) * dist), 0x00 },
         (pixel){ (int)(cosf(angle_c + t) * dist), (int)(sinf(angle_c + t) * dist), 0x33 },
-        COLOR_ORANGE
+        COLOR_DARK_ORANGE
     );
 
     /* draw_wireframe_triangle( */
@@ -98,37 +100,83 @@ void project_vertex(const vec3 v, pixel p) {
 
 void draw_projected_rectangles(float t) {
 
-    // The four "front" vertices
-    vec3 vAf = {-2.f, -0.5f, 5.f};
-    pixel pAf;
-    project_vertex(vAf, pAf);
-    vec3 vBf = {-2.f,  0.5f, 5.f}; pixel pBf; project_vertex(vBf, pBf);
-    vec3 vCf = {-1.f,  0.5f, 5.f}; pixel pCf; project_vertex(vCf, pCf);
-    vec3 vDf = {-1.f, -0.5f, 5.f}; pixel pDf; project_vertex(vDf, pDf);
+    {
+        // The four "front" vertices
+        vec3 vAf = {-2.f, -0.5f, 5.f}; pixel pAf; project_vertex(vAf, pAf);
+        vec3 vBf = {-2.f,  0.5f, 5.f}; pixel pBf; project_vertex(vBf, pBf);
+        vec3 vCf = {-1.f,  0.5f, 5.f}; pixel pCf; project_vertex(vCf, pCf);
+        vec3 vDf = {-1.f, -0.5f, 5.f}; pixel pDf; project_vertex(vDf, pDf);
 
-    // The four "back" vertices
-    vec3 vAb = {-2.f, -0.5f, 6.f}; pixel pAb; project_vertex(vAb, pAb);
-    vec3 vBb = {-2.f,  0.5f, 6.f}; pixel pBb; project_vertex(vBb, pBb);
-    vec3 vCb = {-1.f,  0.5f, 6.f}; pixel pCb; project_vertex(vCb, pCb);
-    vec3 vDb = {-1.f, -0.5f, 6.f}; pixel pDb; project_vertex(vDb, pDb);
+        // The four "back" vertices
+        vec3 vAb = {-2.f, -0.5f, 6.f}; pixel pAb; project_vertex(vAb, pAb);
+        vec3 vBb = {-2.f,  0.5f, 6.f}; pixel pBb; project_vertex(vBb, pBb);
+        vec3 vCb = {-1.f,  0.5f, 6.f}; pixel pCb; project_vertex(vCb, pCb);
+        vec3 vDb = {-1.f, -0.5f, 6.f}; pixel pDb; project_vertex(vDb, pDb);
 
-    // The back face
-    draw_line(framebuffer, pAb, pBb, COLOR_RED);
-    draw_line(framebuffer, pBb, pCb, COLOR_RED);
-    draw_line(framebuffer, pCb, pDb, COLOR_RED);
-    draw_line(framebuffer, pDb, pAb, COLOR_RED);
+        // The back face
+        draw_line(framebuffer, pAb, pBb, COLOR_RED);
+        draw_line(framebuffer, pBb, pCb, COLOR_RED);
+        draw_line(framebuffer, pCb, pDb, COLOR_RED);
+        draw_line(framebuffer, pDb, pAb, COLOR_RED);
 
-    // The front-to-back edges
-    draw_line(framebuffer, pAf, pAb, COLOR_GREEN);
-    draw_line(framebuffer, pBf, pBb, COLOR_GREEN);
-    draw_line(framebuffer, pCf, pCb, COLOR_GREEN);
-    draw_line(framebuffer, pDf, pDb, COLOR_GREEN);
+        // The front-to-back edges
+        draw_line(framebuffer, pAf, pAb, COLOR_GREEN);
+        draw_line(framebuffer, pBf, pBb, COLOR_GREEN);
+        draw_line(framebuffer, pCf, pCb, COLOR_GREEN);
+        draw_line(framebuffer, pDf, pDb, COLOR_GREEN);
 
-    // The front face
-    draw_line(framebuffer, pAf, pBf, COLOR_BLUE);
-    draw_line(framebuffer, pBf, pCf, COLOR_BLUE);
-    draw_line(framebuffer, pCf, pDf, COLOR_BLUE);
-    draw_line(framebuffer, pDf, pAf, COLOR_BLUE);
+        // The front face
+        draw_line(framebuffer, pAf, pBf, COLOR_BLUE);
+        draw_line(framebuffer, pBf, pCf, COLOR_BLUE);
+        draw_line(framebuffer, pCf, pDf, COLOR_BLUE);
+        draw_line(framebuffer, pDf, pAf, COLOR_BLUE);
+    }
+
+    {
+        t *= 2.f;
+        float cx = 1.f;
+        float cy = 1.f;
+        float cz = 5.f;
+        float radius = sinf(0.7f*t);
+        float a_45 = M_PI/4.f - t;
+        float a_135 = M_PI/2.0 + M_PI/4.f - t;
+        float a_225 = 2*M_PI/2.0 + M_PI/4.f - t;
+        float a_315 = 3*M_PI/2.0 + M_PI/4.f - t;
+
+        // The four "front" vertices
+        vec3 vAf = {cx + cosf(a_45) * radius,  cy + sinf(a_45) * radius, 5.f}; pixel pAf; project_vertex(vAf, pAf);
+        vec3 vBf = {cx + cosf(a_135) * radius, cy + sinf(a_135) * radius, 5.f}; pixel pBf; project_vertex(vBf, pBf);
+        vec3 vCf = {cx + cosf(a_225) * radius, cy + sinf(a_225) * radius, 5.f}; pixel pCf; project_vertex(vCf, pCf);
+        vec3 vDf = {cx + cosf(a_315) * radius, cy + sinf(a_315) * radius, 5.f}; pixel pDf; project_vertex(vDf, pDf);
+        
+        // The four "back" vertices
+        vec3 vAb = {cx + cosf(a_45) * radius,  cy + sinf(a_45) * radius, 6.f}; pixel pAb; project_vertex(vAb, pAb);
+        vec3 vBb = {cx + cosf(a_135) * radius,  cy + sinf(a_135) * radius, 6.f}; pixel pBb; project_vertex(vBb, pBb);
+        vec3 vCb = {cx + cosf(a_225) * radius,  cy + sinf(a_225) * radius, 6.f}; pixel pCb; project_vertex(vCb, pCb);
+        vec3 vDb = {cx + cosf(a_315) * radius,  cy + sinf(a_315) * radius, 6.f}; pixel pDb; project_vertex(vDb, pDb);
+
+
+        // The back face
+        draw_line(framebuffer, pAb, pBb, COLOR_DARK_BLUE);
+        draw_line(framebuffer, pBb, pCb, COLOR_DARK_BLUE);
+        draw_line(framebuffer, pCb, pDb, COLOR_DARK_BLUE);
+        draw_line(framebuffer, pDb, pAb, COLOR_DARK_BLUE);
+
+        // The front-to-back edges
+        draw_line(framebuffer, pAf, pAb, COLOR_GREEN);
+        draw_line(framebuffer, pBf, pBb, COLOR_GREEN);
+        draw_line(framebuffer, pCf, pCb, COLOR_GREEN);
+        draw_line(framebuffer, pDf, pDb, COLOR_GREEN);
+
+        // The front face
+        draw_line(framebuffer, pAf, pBf, COLOR_RED);
+        draw_line(framebuffer, pBf, pCf, COLOR_RED);
+        draw_line(framebuffer, pCf, pDf, COLOR_RED);
+        draw_line(framebuffer, pDf, pAf, COLOR_RED);
+
+    }
+
+
 
 }
 
